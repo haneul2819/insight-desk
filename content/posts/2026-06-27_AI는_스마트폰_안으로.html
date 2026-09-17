@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="온디바이스 AI와 Private Cloud Compute가 스마트폰 사용방식과 개인정보 보호를 어떻게 바꾸는지 설명합니다.">
+  <title>AI는 이제 스마트폰 안으로 들어온다?</title>
+  <style>
+    :root{--navy:#183b5b;--blue:#24679a;--teal:#14808b;--pale:#eef6fa;--line:#d8e4eb;--text:#293946;--muted:#60717f}
+    *{box-sizing:border-box} body{margin:0;background:#fff;color:var(--text);font-family:"Pretendard","Noto Sans KR","Malgun Gothic",sans-serif;line-height:1.85;word-break:keep-all}
+    article{width:min(860px,calc(100% - 32px));margin:auto;padding:56px 0 72px} h1{margin:0 0 26px;color:var(--navy);font-size:clamp(30px,5vw,45px);line-height:1.3;letter-spacing:-1.3px}
+    h2{margin:48px 0 17px;padding-bottom:9px;border-bottom:2px solid var(--line);color:var(--blue);font-size:25px;line-height:1.45} p{margin:0 0 17px;font-size:18px} strong{color:var(--navy);font-weight:800}
+    .summary{margin:30px 0 38px;padding:23px 25px;border-left:6px solid var(--teal);border-radius:10px;background:var(--pale);font-size:20px}
+    .callout{margin:24px 0;padding:19px 22px;border:1px solid #bcd5df;border-radius:10px;background:#f7fbfc;color:var(--navy);font-size:18px}
+    ul{margin:12px 0 22px;padding:0;list-style:none} li{position:relative;margin:9px 0;padding-left:23px;font-size:18px} li::before{content:"";position:absolute;left:3px;top:.73em;width:8px;height:8px;border-radius:50%;background:var(--teal)}
+    .sources a{color:#165e93;text-decoration:none;font-weight:700}.sources a:hover{text-decoration:underline}.tags{margin-top:42px;padding:21px;border-radius:12px;background:#f0f5f8;color:#31546d;font-size:16px;line-height:2}
+    .footnote{margin-top:22px;color:var(--muted);font-size:14px}@media(max-width:620px){article{padding-top:36px}h2{font-size:22px}p,li{font-size:17px}}
+  </style>
+</head>
+<body><article>
+  <h1>AI는 이제 스마트폰 안으로 들어온다?</h1>
+  <div class="summary"><strong>한 줄 요약</strong><br>AI의 중심이 거대한 클라우드만이 아니라 스마트폰 안의 온디바이스 모델과 개인정보 보호형 클라우드로 넓어지고 있습니다.</div>
+  <section><h2>온디바이스 AI란 무엇인가</h2><p>온디바이스 AI는 사용자의 요청을 외부 서버로 보내지 않고 스마트폰이나 태블릿 안에서 처리하는 방식입니다. 네트워크가 불안정해도 작동할 수 있고, 민감한 데이터가 기기를 떠나는 일을 줄일 수 있습니다.</p><p>다만 작은 기기는 전력과 메모리, 발열에 제한이 있어 모든 작업을 로컬에서 처리할 수는 없습니다.</p></section>
+<section><h2>애플의 두 갈래 구조</h2><p>Apple Intelligence는 기기 안에서 실행되는 Apple Foundation Models와, 더 큰 계산이 필요할 때 사용하는 <strong>Private Cloud Compute</strong>를 결합합니다. 2026년 공개된 3세대 모델군은 온디바이스 모델과 서버 모델을 함께 구성했습니다.</p><div class="callout">간단하고 민감한 작업은 기기에서, 더 복잡한 작업은 개인정보 보호를 강화한 서버에서 처리하는 혼합형 구조입니다.</div></section>
+<section><h2>개발자에게 열린 Foundation Models</h2><p>Foundation Models 프레임워크는 앱 개발자가 온디바이스 모델을 활용해 요약, 분류, 문장 생성과 도구 호출 같은 기능을 만들 수 있게 합니다. 로컬 추론은 서버 호출비용과 지연시간을 줄일 수 있지만, 모델 버전과 기기 성능에 따른 차이를 충분히 시험해야 합니다.</p></section>
+<section><h2>의료와 일상에서의 가능성</h2><p>진료 메모 초안, 개인 일정 정리, 사진과 문서 분류처럼 개인정보가 중요한 작업에서 온디바이스 AI의 장점이 큽니다. 그러나 의료적 판단이나 고위험 의사결정을 기기 내 모델의 답변만으로 맡겨서는 안 됩니다. <strong>개인정보 보호와 정확성 검증은 별개의 문제</strong>이기 때문입니다.</p></section>
+  <section><h2>핵심 정리</h2><p>AI의 중심이 거대한 클라우드만이 아니라 스마트폰 안의 온디바이스 모델과 개인정보 보호형 클라우드로 넓어지고 있습니다. 수치와 연구결과는 적용 범위와 한계를 함께 확인해야 하며, 한 가지 결과만으로 개인이나 사회 전체의 결론을 단정해서는 안 됩니다.</p></section>
+  <section><h2>출처</h2><ul class="sources"><li><a href="https://www.apple.com/newsroom/2026/06/apple-intelligence-brings-powerful-ai-capabilities-into-everyday-experiences/" target="_blank" rel="noopener">Apple — Apple Intelligence 2026</a></li><li><a href="https://machinelearning.apple.com/research/introducing-third-generation-of-apple-foundation-models" target="_blank" rel="noopener">Apple Machine Learning Research — 3세대 Foundation Models</a></li><li><a href="https://developer.apple.com/documentation/updates/foundationmodels" target="_blank" rel="noopener">Apple Developer — Foundation Models 업데이트</a></li></ul></section>
+  <div class="tags"><strong>핵심태그</strong><br>#온디바이스AI #애플인텔리전스 #FoundationModels #PrivateCloudCompute #스마트폰AI #개인정보보호 #로컬AI #모바일AI #생성형AI #AI뉴스</div>
+  <p class="footnote">이 글은 기존 대화의 원고 제목과 핵심 내용을 바탕으로 자료를 다시 확인해 HTML 형식으로 재구성했습니다.</p>
+</article></body></html>

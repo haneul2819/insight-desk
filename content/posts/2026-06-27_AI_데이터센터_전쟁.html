@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Epoch AI 데이터센터 자료를 바탕으로 GPU, 전력, 냉각, HBM이 AI 경쟁력의 핵심이 된 이유를 설명합니다.">
+  <title>AI 경쟁은 이제 데이터센터 전쟁이다?</title>
+  <style>
+    :root{--navy:#183b5b;--blue:#24679a;--teal:#14808b;--pale:#eef6fa;--line:#d8e4eb;--text:#293946;--muted:#60717f}
+    *{box-sizing:border-box} body{margin:0;background:#fff;color:var(--text);font-family:"Pretendard","Noto Sans KR","Malgun Gothic",sans-serif;line-height:1.85;word-break:keep-all}
+    article{width:min(860px,calc(100% - 32px));margin:auto;padding:56px 0 72px} h1{margin:0 0 26px;color:var(--navy);font-size:clamp(30px,5vw,45px);line-height:1.3;letter-spacing:-1.3px}
+    h2{margin:48px 0 17px;padding-bottom:9px;border-bottom:2px solid var(--line);color:var(--blue);font-size:25px;line-height:1.45} p{margin:0 0 17px;font-size:18px} strong{color:var(--navy);font-weight:800}
+    .summary{margin:30px 0 38px;padding:23px 25px;border-left:6px solid var(--teal);border-radius:10px;background:var(--pale);font-size:20px}
+    .callout{margin:24px 0;padding:19px 22px;border:1px solid #bcd5df;border-radius:10px;background:#f7fbfc;color:var(--navy);font-size:18px}
+    ul{margin:12px 0 22px;padding:0;list-style:none} li{position:relative;margin:9px 0;padding-left:23px;font-size:18px} li::before{content:"";position:absolute;left:3px;top:.73em;width:8px;height:8px;border-radius:50%;background:var(--teal)}
+    .sources a{color:#165e93;text-decoration:none;font-weight:700}.sources a:hover{text-decoration:underline}.tags{margin-top:42px;padding:21px;border-radius:12px;background:#f0f5f8;color:#31546d;font-size:16px;line-height:2}
+    .footnote{margin-top:22px;color:var(--muted);font-size:14px}@media(max-width:620px){article{padding-top:36px}h2{font-size:22px}p,li{font-size:17px}}
+  </style>
+</head>
+<body><article>
+  <h1>AI 경쟁은 이제 데이터센터 전쟁이다?</h1>
+  <div class="summary"><strong>한 줄 요약</strong><br>좋은 AI 모델을 만드는 경쟁은 알고리즘만의 싸움이 아니라 GPU·HBM·전력·냉각·부지를 확보하는 인프라 전쟁이 됐습니다.</div>
+  <section><h2>61개 사이트가 보여준 당시의 규모</h2><p>2026년 6월 말 공개 데이터 기준으로 Epoch AI의 대형 AI 데이터센터 자료는 <strong>61개 사이트, 약 900만 개의 H100 환산 연산능력, 약 9.6GW의 IT 전력</strong>을 담고 있었습니다. 주요 소유자는 13곳으로 집중돼 있었습니다.</p><p>이 데이터베이스는 계속 갱신되는 동적 자료이므로, 현재 화면의 수치는 당시보다 커질 수 있습니다.</p></section>
+<section><h2>H100 환산이라는 공통 단위</h2><p>AI 가속기는 NVIDIA GPU뿐 아니라 Google TPU 등 종류가 다양합니다. Epoch AI는 서로 다른 칩의 연산능력을 H100-equivalent로 환산해 규모를 비교합니다. 이는 실제 H100 개수를 뜻하는 것이 아니라 <strong>비교를 위한 추정 단위</strong>입니다.</p></section>
+<section><h2>GPU만 있다고 끝나지 않는다</h2><p>대규모 학습에는 GPU와 함께 데이터를 빠르게 공급하는 HBM, 칩을 연결하는 네트워크, 막대한 전력과 냉각설비가 필요합니다. 한 요소라도 부족하면 비싼 가속기가 제대로 일하지 못합니다.</p><div class="callout">AI 데이터센터는 컴퓨터가 많이 모인 건물이 아니라 전력·열·메모리·통신을 동시에 최적화한 거대한 산업시설입니다.</div></section>
+<section><h2>병원 AI에도 미치는 영향</h2><p>대형 모델 학습비가 높아질수록 병원은 자체 모델을 처음부터 만들기보다 검증된 클라우드 모델이나 경량 로컬 모델을 조합할 가능성이 큽니다. 비용뿐 아니라 환자정보 보호, 지연시간, 장애 시 대체경로를 함께 설계해야 합니다.</p></section>
+  <section><h2>핵심 정리</h2><p>좋은 AI 모델을 만드는 경쟁은 알고리즘만의 싸움이 아니라 GPU·HBM·전력·냉각·부지를 확보하는 인프라 전쟁이 됐습니다. 수치와 연구결과는 적용 범위와 한계를 함께 확인해야 하며, 한 가지 결과만으로 개인이나 사회 전체의 결론을 단정해서는 안 됩니다.</p></section>
+  <section><h2>출처</h2><ul class="sources"><li><a href="https://epoch.ai/data/ai-data-centers" target="_blank" rel="noopener">Epoch AI — AI Data Centers</a></li><li><a href="https://epoch.ai/data/ai-chip-owners" target="_blank" rel="noopener">Epoch AI — AI Chip Owners</a></li></ul></section>
+  <div class="tags"><strong>핵심태그</strong><br>#AI데이터센터 #EpochAI #GPU #H100 #HBM #AI인프라 #데이터센터전력 #클라우드 #병원AI #인공지능</div>
+  <p class="footnote">이 글은 기존 대화의 원고 제목과 핵심 내용을 바탕으로 자료를 다시 확인해 HTML 형식으로 재구성했습니다.</p>
+</article></body></html>

@@ -1,0 +1,122 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getPosts } from "../lib/posts";
+
+const posts = getPosts();
+const categories = ["전체", ...new Set(posts.map((post) => post.category))];
+const [lead, second, third] = posts;
+const dateLabel = (date: string) => date.replaceAll("-", ".");
+---
+
+<BaseLayout>
+  <header class="masthead">
+    <div class="site-shell masthead-inner">
+      <a class="brand" href="/" aria-label="Insight Desk 홈">
+        <span>INSIGHT</span><i></i><span>DESK</span>
+      </a>
+      <span class="edition">TECH · SCIENCE · HEALTH</span>
+      <span class="mast-count">ARCHIVE {String(posts.length).padStart(2, "0")}</span>
+    </div>
+  </header>
+
+  <main class="site-shell">
+    <section class="lead-grid" aria-label="주요 글">
+      <article class="lead-story">
+        <div class="lead-index">
+          <span class="kicker">{lead.category} / 최근 글</span>
+          <span class="issue-number">{String(posts.length).padStart(2, "0")}</span>
+        </div>
+        <div>
+          <h1 class="lead-title">{lead.title}</h1>
+          <p class="lead-summary">{lead.summary}</p>
+          <a class="read-link" href={`/posts/${lead.slug}`}>전문 읽기 <span aria-hidden="true">↗</span></a>
+        </div>
+      </article>
+
+      <div class="side-stories">
+        {[second, third].map((post) => (
+          <article class="side-story">
+            <div class="meta-line"><span>{post.category}</span><span>{dateLabel(post.date)}</span></div>
+            <div>
+              <h2><a href={`/posts/${post.slug}`}>{post.title}</a></h2>
+              <a class="read-link" href={`/posts/${post.slug}`}>읽기 <span aria-hidden="true">↗</span></a>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="archive" aria-labelledby="archive-title">
+      <div class="archive-head">
+        <div><span class="kicker">전체 아카이브</span><h2 id="archive-title">분야별로 읽기</h2></div>
+        <label class="search-wrap">
+          <span class="sr-only">글 검색</span>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m16.5 16.5 4 4"></path></svg>
+          <input id="post-search" class="search-field" type="search" placeholder="제목, 내용 또는 태그 검색" autocomplete="off" />
+        </label>
+      </div>
+
+      <div class="category-row" aria-label="카테고리 선택">
+        {categories.map((category, index) => (
+          <button class="category-button" type="button" data-category={category} data-active={index === 0 ? "true" : "false"}>{category}</button>
+        ))}
+        <span id="result-count" class="result-line">{posts.length}개 글</span>
+      </div>
+
+      <div id="story-grid" class="story-grid">
+        {posts.map((post, index) => (
+          <a
+            class="story-card"
+            href={`/posts/${post.slug}`}
+            data-category={post.category}
+            data-search={`${post.title} ${post.summary} ${post.tags.join(" ")}`.toLocaleLowerCase("ko-KR")}
+          >
+            <div class="meta-line"><span>{post.category}</span><span>{dateLabel(post.date)}</span></div>
+            <h3>{post.title}</h3>
+            <p>{post.summary}</p>
+            <div class="card-bottom"><span class="card-number">{String(index + 1).padStart(2, "0")}</span><span aria-hidden="true">↗</span></div>
+          </a>
+        ))}
+      </div>
+      <div id="empty-state" class="empty-state" hidden>조건에 맞는 글이 없습니다.</div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-shell footer-inner">
+      <span class="footer-brand">INSIGHT DESK</span>
+      <span>기술·과학·의학 이슈를 근거와 맥락으로 정리합니다.</span>
+      <span class="footer-host">HN LAB</span>
+    </div>
+  </footer>
+
+  <script>
+    const input = document.querySelector<HTMLInputElement>("#post-search");
+    const buttons = [...document.querySelectorAll<HTMLButtonElement>(".category-button")];
+    const cards = [...document.querySelectorAll<HTMLElement>(".story-card")];
+    const count = document.querySelector<HTMLElement>("#result-count");
+    const empty = document.querySelector<HTMLElement>("#empty-state");
+    let activeCategory = "전체";
+
+    const filterPosts = () => {
+      const query = input?.value.trim().toLocaleLowerCase("ko-KR") ?? "";
+      let visible = 0;
+      cards.forEach((card) => {
+        const categoryMatch = activeCategory === "전체" || card.dataset.category === activeCategory;
+        const searchMatch = !query || card.dataset.search?.includes(query);
+        const show = categoryMatch && searchMatch;
+        card.hidden = !show;
+        if (show) visible += 1;
+      });
+      if (count) count.textContent = `${visible}개 글`;
+      if (empty) empty.hidden = visible !== 0;
+    };
+
+    input?.addEventListener("input", filterPosts);
+    buttons.forEach((button) => button.addEventListener("click", () => {
+      activeCategory = button.dataset.category ?? "전체";
+      buttons.forEach((item) => item.dataset.active = String(item === button));
+      filterPosts();
+    }));
+  </script>
+</BaseLayout>

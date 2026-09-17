@@ -1,0 +1,36 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getPosts, type Post } from "../../lib/posts";
+
+export function getStaticPaths() {
+  return getPosts().map((post) => ({ params: { slug: post.slug }, props: { post } }));
+}
+
+interface Props { post: Post }
+const { post } = Astro.props;
+const dateLabel = post.date.replaceAll("-", ".");
+---
+
+<BaseLayout title={post.title} description={post.summary}>
+  <header class="masthead">
+    <div class="site-shell masthead-inner">
+      <a class="brand" href="/" aria-label="Insight Desk 홈"><span>INSIGHT</span><i></i><span>DESK</span></a>
+      <span class="edition">{post.category}</span>
+      <span class="mast-count">{dateLabel}</span>
+    </div>
+  </header>
+
+  <main class="article-shell">
+    <header class="article-top">
+      <a class="back-link" href="/"><span aria-hidden="true">←</span> 전체 글</a>
+      <span class="kicker">{post.category} / INSIGHT DESK</span>
+      <h1 class="article-title">{post.title}</h1>
+      <p class="article-deck">{post.summary}</p>
+    </header>
+    <article class="article-body" set:html={post.body}></article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-shell footer-inner"><span class="footer-brand">INSIGHT DESK</span><a href="/">아카이브로 돌아가기</a></div>
+  </footer>
+</BaseLayout>
