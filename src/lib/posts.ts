@@ -51,7 +51,7 @@ export function getPosts(): Post[] {
       const summary = decode(summaryHtml ?? firstParagraph).replace(/^한 줄 요약\s*/i, "");
       const date = file.match(/^(\d{4}-\d{2}-\d{2})/)?.[1] ?? "2026-01-01";
       const slug = file.replace(/^\d{4}-\d{2}-\d{2}_/, "").replace(/\.html$/, "");
-      const tagsBlock = article.match(/<div[^>]*class=["'][^"']*tags[^"']*["'][^>]*>([\s\S]*?)<\/div>/i)?.[1] ?? "";
+      const tagsBlock = article.match(/<(?:div|p)[^>]*class=["'][^"']*tags[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|p)>/i)?.[1] ?? "";
       const tags = [...decode(tagsBlock).matchAll(/#[^\s#]+/g)].map((match) => match[0].slice(1));
       const body = article.replace(/<h1[^>]*>[\s\S]*?<\/h1>/i, "").trim();
       return { slug, title, date, category: classify(file), summary, tags, body };
