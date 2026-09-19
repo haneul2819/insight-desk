@@ -16,7 +16,7 @@ export const GET: APIRoute = ({ site }) => {
       <pubDate>${new Date(`${post.date}T00:00:00+09:00`).toUTCString()}</pubDate>
       <description>${escapeXml(post.summary)}</description>
     </item>`).join("");
-  return new Response(`<?xml version="1.0" encoding="UTF-8" ?><rss version="2.0"><channel><title>Insight Desk</title><link>${base}</link><description>기술·과학·의학 이슈를 근거와 맥락으로 정리합니다.</description>${items}</channel></rss>`, {
+  return new Response(`<?xml version="1.0" encoding="UTF-8" ?><rss version="2.0"><channel><title>HN LAB 매거진</title><link>${base}</link><description>기술·과학·의학 이슈를 근거와 맥락으로 정리합니다.</description>${items}</channel></rss>`, {
     headers: { "Content-Type": "application/rss+xml; charset=utf-8" }
   });
 };

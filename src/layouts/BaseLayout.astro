@@ -7,10 +7,10 @@ interface Props {
 }
 
 const {
-  title = "Insight Desk",
+  title = "HN LAB 매거진",
   description = "기술·과학·의학 이슈를 근거와 맥락으로 정리합니다."
 } = Astro.props;
-const pageTitle = title === "Insight Desk" ? title : `${title} | Insight Desk`;
+const pageTitle = title === "HN LAB 매거진" ? title : `${title} | HN LAB 매거진`;
 ---
 
 <!doctype html>
@@ -24,7 +24,7 @@ const pageTitle = title === "Insight Desk" ? title : `${title} | Insight Desk`;
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="alternate" type="application/rss+xml" title="Insight Desk RSS" href="/rss.xml" />
+    <link rel="alternate" type="application/rss+xml" title="HN LAB 매거진 RSS" href="/rss.xml" />
     <title>{pageTitle}</title>
   </head>
   <body>

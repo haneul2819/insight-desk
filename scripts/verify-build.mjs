@@ -14,6 +14,13 @@ if (articlePages.length !== expectedCount) failures.push(`글 페이지 수: ${a
 if (cardCount !== expectedCount) failures.push(`메인 카드 수: ${cardCount}/${expectedCount}`);
 if (!home.includes("post-search")) failures.push("검색 입력창이 없습니다.");
 if (!home.includes("category-button")) failures.push("카테고리 버튼이 없습니다.");
+if (!home.includes("HN LAB 매거진")) failures.push("홈 화면 브랜드가 없습니다.");
+
+function removeMagazineBrand(html) {
+  return html
+    .replace(/ \| HN LAB 매거진<\/title>/i, "</title>")
+    .replace(/\n?<style id="hnlab-magazine-style">[\s\S]*?<\/style>\s*<header class="hnlab-magazine-bar">[\s\S]*?<\/header>/i, "");
+}
 
 for (const original of originals) {
   const slug = original.replace(/^\d{4}-\d{2}-\d{2}_/, "").replace(/\.html$/, "");
@@ -24,7 +31,8 @@ for (const original of originals) {
   }
   const sourceHtml = readFileSync(join(root, "content", "posts", original), "utf8");
   const builtHtml = readFileSync(file, "utf8");
-  if (builtHtml !== sourceHtml) failures.push(`${slug}: 원본 HTML과 게시 HTML이 다릅니다.`);
+  if (removeMagazineBrand(builtHtml) !== sourceHtml) failures.push(`${slug}: 브랜드 표시 외 원본 HTML이 변경되었습니다.`);
+  if (!builtHtml.includes("HN LAB 매거진")) failures.push(`${slug}: HN LAB 매거진 브랜드가 없습니다.`);
   if (!/class=["'][^"']*tags[^"']*["']/i.test(builtHtml)) failures.push(`${slug}: 태그 없음`);
 }
 
@@ -44,4 +52,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`Verified: ${expectedCount} unchanged original HTML posts, search, categories, tags, and local links.`);
+console.log(`Verified: ${expectedCount} branded original HTML posts, search, categories, tags, and local links.`);
