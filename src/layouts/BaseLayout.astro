@@ -4,11 +4,13 @@ import "../styles/global.css";
 interface Props {
   title?: string;
   description?: string;
+  noindex?: boolean;
 }
 
 const {
   title = "HN LAB 매거진",
-  description = "기술·과학·의학 이슈를 근거와 맥락으로 정리합니다."
+  description = "기술·과학·의학 이슈를 근거와 맥락으로 정리합니다.",
+  noindex = false,
 } = Astro.props;
 const pageTitle = title === "HN LAB 매거진" ? title : `${title} | HN LAB 매거진`;
 ---
@@ -19,6 +21,7 @@ const pageTitle = title === "HN LAB 매거진" ? title : `${title} | HN LAB 매�
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex,nofollow,noarchive" />}
     <meta name="theme-color" content="#101820" />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />

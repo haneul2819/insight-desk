@@ -1,0 +1,9 @@
+{
+  "brand": "HN LAB 매거진",
+  "publisher": "하늘디지털랩스",
+  "siteUrl": "https://insight.hnlab.kr",
+  "homeUrl": "https://hnlab.kr",
+  "defaultCategory": "IT",
+  "maxTags": 10,
+  "reviewCycleDays": 90
+}

@@ -1,0 +1,331 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getPosts } from "../lib/posts";
+
+const postCount = getPosts().length;
+const outputCount = postCount * 6;
+---
+
+<BaseLayout
+  title="Knowledge Engine"
+  description="HN LAB 내부 콘텐츠 변환 도구"
+  noindex={true}
+>
+  <main class="engine-page">
+    <header class="engine-header">
+      <a class="engine-brand" href="/" aria-label="HN LAB 매거진 홈">
+        <span>HN LAB</span><i></i><strong>KNOWLEDGE ENGINE</strong>
+      </a>
+      <div class="engine-state"><span></span>브라우저 로컬 처리</div>
+    </header>
+
+    <section class="engine-intro">
+      <div>
+        <p class="engine-kicker">INTERNAL CONTENT SYSTEM · V1.1</p>
+        <h1>원고 한 편을<br /><em>6가지 배포 형식</em>으로</h1>
+        <p class="engine-lead">HTML 원고를 올리면 제목·요약·태그·출처를 분석하고, 뉴스레터와 SNS 문안부터 카드뉴스·쇼츠 대본·검토표까지 한 번에 생성합니다.</p>
+      </div>
+      <dl class="engine-stats">
+        <div><dt>{postCount}</dt><dd>등록 원고</dd></div>
+        <div><dt>{outputCount}</dt><dd>생성 파일</dd></div>
+        <div><dt>6</dt><dd>출력 형식</dd></div>
+      </dl>
+    </section>
+
+    <section class="engine-workspace" aria-label="Knowledge Engine 작업 화면">
+      <div class="engine-input-panel">
+        <div class="panel-heading">
+          <div><span>01</span><h2>원본 HTML</h2></div>
+          <button id="clear-button" class="text-button" type="button">입력 지우기</button>
+        </div>
+
+        <label id="drop-zone" class="drop-zone" for="html-file">
+          <input id="html-file" type="file" accept=".html,.htm,text/html" />
+          <span class="drop-icon">HTML</span>
+          <strong>파일을 놓거나 눌러서 선택</strong>
+          <small>원본은 서버로 전송되지 않습니다</small>
+        </label>
+
+        <label class="field-label" for="source-name">파일 이름</label>
+        <input id="source-name" class="line-input" type="text" placeholder="2026-09-19_글이름.html" />
+
+        <label class="field-label" for="html-source">또는 HTML 직접 붙여넣기</label>
+        <textarea id="html-source" class="source-editor" spellcheck="false" placeholder={"HTML 원고 전체를 이곳에 붙여 넣으세요."}></textarea>
+
+        <div class="input-actions">
+          <button id="generate-button" class="primary-button" type="button">분석하고 6종 생성</button>
+          <p><span class="privacy-dot"></span>모든 처리는 현재 브라우저에서만 실행됩니다.</p>
+        </div>
+      </div>
+
+      <div class="engine-output-panel">
+        <div class="panel-heading">
+          <div><span>02</span><h2>생성 결과</h2></div>
+          <button id="download-all" class="text-button" type="button" disabled>6개 모두 내려받기</button>
+        </div>
+
+        <div id="empty-result" class="result-empty">
+          <div class="empty-mark">6</div>
+          <h3>아직 생성된 결과가 없습니다</h3>
+          <p>왼쪽에 HTML을 입력하면 여기에 분석 결과와 6가지 배포 파일이 표시됩니다.</p>
+        </div>
+
+        <div id="result-view" class="result-view" hidden>
+          <div class="analysis-card">
+            <div>
+              <span id="result-category" class="result-category">IT</span>
+              <h3 id="result-title"></h3>
+              <p id="result-summary"></p>
+            </div>
+            <dl>
+              <div><dt>태그</dt><dd id="result-tags">0</dd></div>
+              <div><dt>출처</dt><dd id="result-sources">0</dd></div>
+              <div><dt>검토</dt><dd id="result-review">확인</dd></div>
+            </dl>
+          </div>
+
+          <nav id="output-tabs" class="output-tabs" aria-label="결과 형식"></nav>
+          <div class="preview-toolbar">
+            <span id="preview-filename"></span>
+            <button id="copy-output" type="button">내용 복사</button>
+            <button id="download-output" type="button">파일 내려받기</button>
+          </div>
+          <pre id="output-preview" class="output-preview" tabindex="0"></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="engine-guide">
+      <div><span>원본 보존</span><p>입력한 HTML은 수정하거나 덮어쓰지 않습니다.</p></div>
+      <div><span>검토 우선</span><p>출처와 팩트체크 누락을 결과 상단에서 알려줍니다.</p></div>
+      <div><span>배포 준비</span><p>생성 파일은 검토 후 채널별로 사용합니다.</p></div>
+    </section>
+  </main>
+
+  <div id="toast" class="engine-toast" role="status" aria-live="polite"></div>
+
+  <script>
+    type OutputFile = { key: string; label: string; filename: string; type: string; content: string };
+    type ParsedPost = {
+      slug: string; title: string; date: string; category: string; summary: string;
+      tags: string[]; sections: { title: string; text: string; html: string }[];
+      sources: { title: string; url: string }[]; factCheck: string; url: string;
+      reviewDue: string; wordCount: number; readingMinutes: number; sourceFile: string;
+    };
+
+    const $ = <T extends HTMLElement>(selector: string) => document.querySelector<T>(selector);
+    const fileInput = $("#html-file") as HTMLInputElement;
+    const nameInput = $("#source-name") as HTMLInputElement;
+    const sourceInput = $("#html-source") as HTMLTextAreaElement;
+    const dropZone = $("#drop-zone") as HTMLLabelElement;
+    const emptyResult = $("#empty-result") as HTMLElement;
+    const resultView = $("#result-view") as HTMLElement;
+    const tabs = $("#output-tabs") as HTMLElement;
+    const preview = $("#output-preview") as HTMLElement;
+    const previewFilename = $("#preview-filename") as HTMLElement;
+    const downloadAll = $("#download-all") as HTMLButtonElement;
+    const toast = $("#toast") as HTMLElement;
+    let outputs: OutputFile[] = [];
+    let activeIndex = 0;
+
+    const text = (html = "") => {
+      const holder = document.createElement("div");
+      holder.innerHTML = html.replace(/<br\s*\/?\s*>/gi, "\n");
+      return (holder.textContent ?? "").replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n").trim();
+    };
+    const escapeHtml = (value = "") => value.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char] ?? char);
+    const firstSentence = (value = "", limit = 190) => {
+      const clean = value.replace(/\s+/g, " ").trim();
+      const sentence = clean.match(/^.{20,}?(?:다\.|요\.|니다\.|습니다\.|[.!?](?:\s|$))/)?.[0] ?? clean;
+      return sentence.length <= limit ? sentence : `${sentence.slice(0, limit - 1).trim()}…`;
+    };
+    const classify = (value: string) => {
+      if (/AI|GPT|Claude|Anthropic|OpenAI|인공지능/i.test(value)) return "AI";
+      if (/의학|건강|백신|수면|신약|질환|환자/.test(value)) return "의학";
+      if (/과학|기후|폭염|햇빛|지구|연구/.test(value)) return "과학";
+      if (/로봇|휴머노이드|Digit/i.test(value)) return "로보틱스";
+      return "IT";
+    };
+    const slugify = (filename: string, title: string) => (filename || title)
+      .replace(/^\d{4}-\d{2}-\d{2}_/, "").replace(/\.html?$/i, "")
+      .replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, "_").slice(0, 80) || "untitled";
+    const showToast = (message: string) => {
+      toast.textContent = message;
+      toast.dataset.show = "true";
+      window.setTimeout(() => toast.dataset.show = "false", 1800);
+    };
+
+    function parsePost(html: string, filename: string): ParsedPost {
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const article = doc.querySelector("article") ?? doc.body;
+      const title = text(article.querySelector("h1")?.innerHTML ?? doc.title ?? filename.replace(/\.html?$/i, ""));
+      const summaryNode = article.querySelector(".summary,.lead,.key");
+      const paragraphs = [...article.querySelectorAll("p")].map((node) => text(node.innerHTML)).filter((value) => value.length > 35 && !value.startsWith("#"));
+      const summary = firstSentence(text(summaryNode?.innerHTML ?? paragraphs[0] ?? title), 240).replace(/^(?:한 줄 요약|한 줄 정리)\s*/i, "");
+      const headings = [...article.querySelectorAll("h2")];
+      const sections = headings.map((heading) => {
+        const nodes: Element[] = [];
+        let next = heading.nextElementSibling;
+        while (next && next.tagName !== "H2") { nodes.push(next); next = next.nextElementSibling; }
+        const html = nodes.map((node) => node.outerHTML).join("\n");
+        return { title: text(heading.innerHTML), text: text(html), html };
+      }).filter((section) => section.title && section.text);
+      const tagBlock = article.querySelector(".tags")?.textContent ?? "";
+      const tags = [...tagBlock.matchAll(/#([^\s#]+)/g)].map((match) => match[1].replace(/[.,;:]+$/, "")).filter((tag, index, all) => tag && all.indexOf(tag) === index).slice(0, 10);
+      const sourceSection = sections.find((section) => /출처|참고/.test(section.title));
+      const sourceContainer = headings.find((heading) => /출처|참고/.test(text(heading.innerHTML)))?.parentElement ?? article;
+      const sources = [...sourceContainer.querySelectorAll("a[href]")].map((link) => ({ title: text(link.innerHTML), url: (link as HTMLAnchorElement).href })).filter((source) => /^https?:\/\//.test(source.url));
+      const factCheck = sections.find((section) => /팩트체크|주의|확인/.test(section.title))?.text ?? text(article.querySelector(".check,.fact-check,.factcheck")?.innerHTML ?? "");
+      const date = filename.match(/^(\d{4}-\d{2}-\d{2})/)?.[1] ?? new Date().toISOString().slice(0, 10);
+      const reviewDate = new Date(`${date}T00:00:00Z`); reviewDate.setUTCDate(reviewDate.getUTCDate() + 90);
+      const slug = slugify(filename, title);
+      const wordCount = text(article.innerHTML).split(/\s+/).filter(Boolean).length;
+      return {
+        slug, title, date, category: classify(`${filename} ${title} ${tags.join(" ")}`), summary, tags, sections,
+        sources: sources.length ? sources : (sourceSection?.text.split("\n").filter(Boolean).map((title) => ({ title, url: "" })) ?? []),
+        factCheck, url: `https://insight.hnlab.kr/posts/${encodeURIComponent(slug)}/`,
+        reviewDue: reviewDate.toISOString().slice(0, 10), wordCount,
+        readingMinutes: Math.max(1, Math.ceil(wordCount / 350)), sourceFile: `content/posts/${filename}`,
+      };
+    }
+
+    function makeOutputs(post: ParsedPost): OutputFile[] {
+      const usefulSections = post.sections.filter((section) => !/출처|핵심용어|태그/.test(section.title));
+      const publicPost = { schemaVersion: "1.0", ...post, publisher: "하늘디지털랩스", brand: "HN LAB 매거진" } as Record<string, unknown>;
+      delete publicPost.sections;
+      const social = `[공통 게시문]\n${post.title}\n\n${post.summary}\n\n${post.url}\n\n${post.tags.map((tag) => `#${tag}`).join(" ")}\n\n[짧은 게시문]\n${post.title}\n${post.summary}\n${post.url}\n\n[카카오톡 공유문]\n${post.title}\n${post.summary}\n자세히 보기: ${post.url}\n`;
+      const highlights = usefulSections.slice(0, 4).map((section) => `<li style="margin:0 0 10px"><strong>${escapeHtml(section.title)}</strong><br>${escapeHtml(firstSentence(section.text, 180))}</li>`).join("");
+      const newsletter = `<!doctype html>\n<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(post.title)}</title></head>\n<body style="margin:0;background:#f4f1e8;color:#101820;font-family:Arial,'Noto Sans KR',sans-serif"><main style="max-width:680px;margin:0 auto;padding:40px 24px;background:#fff"><p style="font-size:13px;letter-spacing:.12em;color:#b7442d;font-weight:700">HN LAB 매거진</p><h1 style="font-size:32px;line-height:1.35">${escapeHtml(post.title)}</h1><p style="font-size:18px;line-height:1.8">${escapeHtml(post.summary)}</p><ul style="padding-left:22px;font-size:16px;line-height:1.7">${highlights}</ul><p><a href="${post.url}" style="display:inline-block;padding:13px 18px;background:#101820;color:#fff;text-decoration:none;font-weight:700">전체 글 읽기</a></p><hr style="margin:36px 0;border:0;border-top:1px solid #ddd"><p style="font-size:12px;color:#697178">발행: 하늘디지털랩스 · ${post.date}</p></main></body></html>\n`;
+      const cards = [`# 카드 1 · 표지\n\n${post.title}`, `# 카드 2 · 한 줄 요약\n\n${post.summary}`, ...usefulSections.slice(0, 7).map((section, index) => `# 카드 ${index + 3} · ${section.title}\n\n${firstSentence(section.text, 150)}`)].slice(0, 9);
+      cards.push(`# 카드 ${cards.length + 1} · 더 읽기\n\nHN LAB 매거진\n${post.url}`);
+      const cardNews = `${cards.join("\n\n---\n\n")}\n`;
+      const shortsPoints = usefulSections.slice(0, 3).map((section) => firstSentence(section.text, 110));
+      const shorts = `# 40초 쇼츠 대본\n\n[0~4초 · 훅]\n${post.title}\n\n[5~12초 · 핵심]\n${post.summary}\n\n[13~30초 · 설명]\n${shortsPoints.join("\n")}\n\n[31~36초 · 의미]\n이 변화가 우리 생활과 산업에 어떤 영향을 주는지 함께 지켜봐야 합니다.\n\n[37~40초 · 마무리]\n전체 내용은 HN LAB 매거진에서 확인하세요.\n${post.url}\n`;
+      const checks: [boolean, string][] = [[Boolean(post.title), "제목 확인"], [post.summary.length >= 40, "한 줄 요약 40자 이상"], [post.tags.length > 0 && post.tags.length <= 10, "태그 1~10개"], [post.sections.length >= 3, "본문 소제목 3개 이상"], [post.sources.length > 0, "출처 섹션 확인"], [Boolean(post.factCheck), "팩트체크 또는 주의사항 확인"]];
+      const review = `# 검토 체크리스트\n\n- 글: ${post.title}\n- 게시일: ${post.date}\n- 다음 정기 검토일: ${post.reviewDue}\n- 예상 읽기 시간: ${post.readingMinutes}분\n\n${checks.map(([ok, label]) => `- [${ok ? "x" : " "}] ${label}`).join("\n")}\n\n## 출처\n\n${post.sources.length ? post.sources.map((source) => `- ${source.title}${source.url ? ` — ${source.url}` : ""}`).join("\n") : "- [ ] 원문 출처를 추가하세요."}\n\n## 변경 이력\n\n- ${post.date}: 최초 등록\n`;
+      return [
+        { key: "metadata", label: "메타데이터", filename: "metadata.json", type: "application/json", content: `${JSON.stringify(publicPost, null, 2)}\n` },
+        { key: "social", label: "SNS 공유문", filename: "social.txt", type: "text/plain", content: social },
+        { key: "newsletter", label: "뉴스레터", filename: "newsletter.html", type: "text/html", content: newsletter },
+        { key: "cards", label: "카드뉴스", filename: "card-news.md", type: "text/markdown", content: cardNews },
+        { key: "shorts", label: "쇼츠 대본", filename: "shorts-script.md", type: "text/markdown", content: shorts },
+        { key: "review", label: "검토표", filename: "review-checklist.md", type: "text/markdown", content: review },
+      ];
+    }
+
+    function download(output: OutputFile, prefix = "") {
+      const blob = new Blob([output.content], { type: `${output.type};charset=utf-8` });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob); link.download = prefix ? `${prefix}_${output.filename}` : output.filename;
+      link.click(); window.setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    }
+    function selectOutput(index: number) {
+      activeIndex = index;
+      [...tabs.querySelectorAll("button")].forEach((button, itemIndex) => button.dataset.active = String(index === itemIndex));
+      previewFilename.textContent = outputs[index].filename;
+      preview.textContent = outputs[index].content;
+    }
+    function render(post: ParsedPost) {
+      outputs = makeOutputs(post); activeIndex = 0;
+      $("#result-category")!.textContent = post.category;
+      $("#result-title")!.textContent = post.title;
+      $("#result-summary")!.textContent = post.summary;
+      $("#result-tags")!.textContent = String(post.tags.length);
+      $("#result-sources")!.textContent = String(post.sources.length);
+      const reviewLabel = !post.sources.length || !post.factCheck ? "보완 필요" : "기본 통과";
+      $("#result-review")!.textContent = reviewLabel;
+      $("#result-review")!.dataset.state = reviewLabel === "기본 통과" ? "pass" : "warn";
+      tabs.innerHTML = "";
+      outputs.forEach((output, index) => {
+        const button = document.createElement("button"); button.type = "button"; button.textContent = output.label;
+        button.addEventListener("click", () => selectOutput(index)); tabs.append(button);
+      });
+      emptyResult.hidden = true; resultView.hidden = false; downloadAll.disabled = false; selectOutput(0);
+    }
+    async function loadFile(file: File) {
+      nameInput.value = file.name;
+      sourceInput.value = await file.text();
+      showToast("HTML 파일을 불러왔습니다.");
+    }
+    fileInput.addEventListener("change", () => fileInput.files?.[0] && loadFile(fileInput.files[0]));
+    ["dragenter", "dragover"].forEach((event) => dropZone.addEventListener(event, (e) => { e.preventDefault(); dropZone.dataset.drag = "true"; }));
+    ["dragleave", "drop"].forEach((event) => dropZone.addEventListener(event, (e) => { e.preventDefault(); dropZone.dataset.drag = "false"; }));
+    dropZone.addEventListener("drop", (event) => { const file = event.dataTransfer?.files?.[0]; if (file) loadFile(file); });
+    $("#generate-button")!.addEventListener("click", () => {
+      const html = sourceInput.value.trim();
+      if (!html) { sourceInput.focus(); showToast("HTML 원고를 입력해 주세요."); return; }
+      try { render(parsePost(html, nameInput.value.trim() || `2026-09-19_새글.html`)); showToast("6가지 결과를 생성했습니다."); }
+      catch { showToast("HTML을 분석하지 못했습니다. 원고 구조를 확인해 주세요."); }
+    });
+    $("#clear-button")!.addEventListener("click", () => {
+      fileInput.value = ""; nameInput.value = ""; sourceInput.value = ""; outputs = [];
+      resultView.hidden = true; emptyResult.hidden = false; downloadAll.disabled = true;
+    });
+    $("#copy-output")!.addEventListener("click", async () => { await navigator.clipboard.writeText(outputs[activeIndex].content); showToast("내용을 복사했습니다."); });
+    $("#download-output")!.addEventListener("click", () => download(outputs[activeIndex]));
+    downloadAll.addEventListener("click", () => { const prefix = slugify(nameInput.value, "HN-LAB"); outputs.forEach((output, index) => window.setTimeout(() => download(output, prefix), index * 120)); showToast("6개 파일 내려받기를 시작했습니다."); });
+  </script>
+
+  <style>
+    :global(body) { background: #ece9df; }
+    .engine-page { min-height: 100vh; color: #101820; }
+    .engine-header { min-height: 72px; padding: 0 max(30px, calc((100vw - 1320px) / 2)); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #101820; background: rgba(244,241,232,.94); }
+    .engine-brand { display: flex; align-items: center; gap: 9px; font-size: .76rem; letter-spacing: .12em; }
+    .engine-brand span { font-weight: 900; } .engine-brand strong { font-weight: 650; color: #697178; }
+    .engine-brand i { width: 4px; height: 18px; background: #b7442d; transform: skew(-12deg); }
+    .engine-state { display: flex; align-items: center; gap: 8px; color: #526068; font-size: .74rem; }
+    .engine-state span, .privacy-dot { width: 8px; height: 8px; border-radius: 50%; background: #3f6b5a; box-shadow: 0 0 0 4px rgba(63,107,90,.12); }
+    .engine-intro { width: min(1320px, calc(100% - 60px)); margin: 0 auto; padding: 64px 0 52px; display: grid; grid-template-columns: minmax(0,1.5fr) minmax(360px,.72fr); align-items: end; gap: 70px; }
+    .engine-kicker { margin: 0 0 18px; color: #b7442d; font: 800 .72rem/1.2 ui-monospace,monospace; letter-spacing: .14em; }
+    .engine-intro h1 { max-width: 770px; margin: 0; font-family: "Noto Serif KR","Nanum Myeongjo",serif; font-size: clamp(2.9rem,6vw,5.6rem); line-height: 1.05; letter-spacing: -.06em; }
+    .engine-intro h1 em { color: #b7442d; font-style: normal; }
+    .engine-lead { max-width: 720px; margin: 28px 0 0; color: #556068; font-size: 1rem; line-height: 1.8; word-break: keep-all; }
+    .engine-stats { margin: 0; display: grid; grid-template-columns: repeat(3,1fr); border-top: 1px solid #101820; border-bottom: 1px solid #101820; }
+    .engine-stats div { padding: 22px 12px 19px; } .engine-stats div + div { border-left: 1px solid #aeb2ac; }
+    .engine-stats dt { font-family: Georgia,serif; font-size: 2.8rem; line-height: 1; color: #b7442d; } .engine-stats dd { margin: 9px 0 0; color: #697178; font-size: .72rem; }
+    .engine-workspace { width: min(1440px, calc(100% - 36px)); margin: 0 auto; display: grid; grid-template-columns: minmax(380px,.8fr) minmax(520px,1.2fr); border: 1px solid #101820; background: #fffefa; box-shadow: 0 24px 65px rgba(16,24,32,.1); }
+    .engine-input-panel, .engine-output-panel { min-width: 0; padding: 30px; } .engine-input-panel { border-right: 1px solid #101820; background: #f4f1e8; }
+    .panel-heading { min-height: 42px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .panel-heading > div { display: flex; align-items: center; gap: 12px; } .panel-heading span { color: #b7442d; font: 800 .72rem/1 ui-monospace,monospace; }
+    .panel-heading h2 { margin: 0; font-size: 1.35rem; letter-spacing: -.03em; }
+    .text-button { padding: 7px 0; border: 0; border-bottom: 1px solid #101820; background: none; cursor: pointer; font-size: .75rem; font-weight: 750; }
+    .text-button:disabled { opacity: .35; cursor: default; }
+    .drop-zone { min-height: 130px; padding: 20px; border: 1px dashed #8f9591; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; background: #fffefa; cursor: pointer; transition: .18s ease; }
+    .drop-zone:hover, .drop-zone[data-drag="true"] { border-color: #b7442d; background: #fbf1e9; }
+    .drop-zone input { position: absolute; opacity: 0; pointer-events: none; } .drop-icon { padding: 5px 8px; border: 1px solid #101820; font: 800 .65rem/1 ui-monospace,monospace; }
+    .drop-zone strong { font-size: .86rem; } .drop-zone small { color: #747d81; font-size: .68rem; }
+    .field-label { display: block; margin: 22px 0 8px; color: #5c666c; font-size: .7rem; font-weight: 800; letter-spacing: .06em; }
+    .line-input, .source-editor { width: 100%; border: 1px solid #afb3ad; border-radius: 0; background: #fffefa; color: #101820; outline: none; }
+    .line-input { height: 42px; padding: 0 12px; font-size: .83rem; } .source-editor { min-height: 272px; padding: 15px; resize: vertical; font: .75rem/1.65 ui-monospace,SFMono-Regular,Menlo,monospace; }
+    .line-input:focus, .source-editor:focus { border-color: #b7442d; box-shadow: 0 0 0 2px rgba(183,68,45,.1); }
+    .input-actions { margin-top: 18px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    .primary-button { min-height: 48px; padding: 0 22px; border: 1px solid #101820; background: #101820; color: #fff; cursor: pointer; font-size: .85rem; font-weight: 850; }
+    .primary-button:hover { background: #b7442d; border-color: #b7442d; }
+    .input-actions p { margin: 0; display: flex; align-items: center; gap: 8px; color: #697178; font-size: .68rem; }
+    .privacy-dot { display: inline-block; width: 6px; height: 6px; flex: 0 0 auto; }
+    .engine-output-panel { min-height: 735px; }
+    .result-empty { min-height: 590px; display: grid; place-content: center; justify-items: center; text-align: center; }
+    .empty-mark { width: 94px; height: 94px; display: grid; place-items: center; border: 1px solid #b8bbb5; border-radius: 50%; color: #b7442d; font: 4rem/1 Georgia,serif; }
+    .result-empty h3 { margin: 24px 0 9px; font-size: 1.2rem; } .result-empty p { max-width: 420px; margin: 0; color: #697178; font-size: .82rem; line-height: 1.7; }
+    .analysis-card { padding: 22px 24px; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 30px; border: 1px solid #c0c3bd; background: #f4f1e8; }
+    .result-category { display: inline-block; margin-bottom: 10px; color: #b7442d; font: 850 .68rem/1 ui-monospace,monospace; letter-spacing: .12em; }
+    .analysis-card h3 { margin: 0; font-size: 1.3rem; line-height: 1.35; word-break: keep-all; } .analysis-card p { margin: 10px 0 0; color: #59646a; font-size: .82rem; line-height: 1.6; }
+    .analysis-card dl { margin: 0; display: grid; grid-template-columns: repeat(3,70px); } .analysis-card dl div { padding: 10px 8px; text-align: center; border-left: 1px solid #c4c6c0; }
+    .analysis-card dt { color: #7b8386; font-size: .63rem; } .analysis-card dd { margin: 9px 0 0; font-size: .82rem; font-weight: 850; }
+    .analysis-card dd[data-state="warn"] { color: #b7442d; } .analysis-card dd[data-state="pass"] { color: #3f6b5a; }
+    .output-tabs { margin-top: 22px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; } .output-tabs::-webkit-scrollbar { display: none; }
+    .output-tabs button { flex: 0 0 auto; padding: 9px 13px; border: 1px solid #aaaFAA; background: transparent; cursor: pointer; font-size: .72rem; }
+    .output-tabs button[data-active="true"] { border-color: #101820; background: #101820; color: #fff; }
+    .preview-toolbar { min-height: 46px; margin-top: 12px; padding: 0 14px; display: flex; align-items: center; gap: 12px; border: 1px solid #101820; border-bottom: 0; background: #ebe8df; }
+    .preview-toolbar span { margin-right: auto; font: .7rem/1 ui-monospace,monospace; color: #596268; }
+    .preview-toolbar button { padding: 5px 0; border: 0; border-bottom: 1px solid #101820; background: none; cursor: pointer; font-size: .68rem; font-weight: 750; }
+    .output-preview { height: 405px; margin: 0; padding: 22px; overflow: auto; border: 1px solid #101820; background: #101820; color: #e7e9e5; white-space: pre-wrap; word-break: break-word; font: .78rem/1.72 ui-monospace,SFMono-Regular,Menlo,monospace; }
+    .engine-guide { width: min(1320px, calc(100% - 60px)); margin: 42px auto 0; padding: 0 0 70px; display: grid; grid-template-columns: repeat(3,1fr); border-top: 1px solid #101820; }
+    .engine-guide div { padding: 24px 20px 0 0; } .engine-guide div + div { padding-left: 28px; border-left: 1px solid #aeb2ac; }
+    .engine-guide span { color: #b7442d; font-size: .75rem; font-weight: 850; } .engine-guide p { margin: 9px 0 0; color: #697178; font-size: .78rem; line-height: 1.6; }
+    .engine-toast { position: fixed; left: 50%; bottom: 26px; z-index: 20; padding: 12px 18px; background: #101820; color: #fff; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; transition: .2s ease; font-size: .78rem; box-shadow: 0 10px 30px rgba(0,0,0,.2); }
+    .engine-toast[data-show="true"] { transform: translate(-50%,0); opacity: 1; }
+    @media (max-width: 980px) { .engine-intro { grid-template-columns: 1fr; gap: 36px; } .engine-workspace { grid-template-columns: 1fr; } .engine-input-panel { border-right: 0; border-bottom: 1px solid #101820; } }
+    @media (max-width: 620px) { .engine-header { padding-inline: 16px; } .engine-brand strong { display: none; } .engine-intro { width: calc(100% - 32px); padding: 42px 0 34px; } .engine-intro h1 { font-size: 2.75rem; } .engine-stats dt { font-size: 2.2rem; } .engine-workspace { width: calc(100% - 16px); } .engine-input-panel,.engine-output-panel { padding: 20px; } .input-actions { align-items: stretch; flex-direction: column; } .analysis-card { grid-template-columns: 1fr; } .analysis-card dl { border-top: 1px solid #c4c6c0; } .analysis-card dl div:first-child { border-left: 0; } .engine-guide { width: calc(100% - 32px); grid-template-columns: 1fr; } .engine-guide div + div { padding-left: 0; border-left: 0; } }
+  </style>
+</BaseLayout>

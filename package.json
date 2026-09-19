@@ -6,10 +6,12 @@
   "scripts": {
     "predev": "node scripts/sync-original-posts.mjs",
     "dev": "astro dev",
-    "prebuild": "node scripts/sync-original-posts.mjs",
+    "prebuild": "node scripts/knowledge-engine.mjs --all && node scripts/sync-original-posts.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
+    "knowledge:build": "node scripts/knowledge-engine.mjs --all",
+    "knowledge:one": "node scripts/knowledge-engine.mjs",
     "preview:files": "node scripts/make-local-preview.mjs",
     "verify": "node scripts/verify-build.mjs"
   },
