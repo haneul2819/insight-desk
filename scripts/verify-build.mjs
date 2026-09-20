@@ -7,6 +7,10 @@ const articleRoot = join(root, "dist", "posts");
 const articlePages = readdirSync(articleRoot).filter((name) => statSync(join(articleRoot, name)).isDirectory());
 const home = readFileSync(join(root, "dist", "index.html"), "utf8");
 const engineFile = join(root, "dist", "engine", "index.html");
+const assetRoot = join(root, "dist", "_astro");
+const builtScripts = existsSync(assetRoot)
+  ? readdirSync(assetRoot).filter((name) => name.endsWith(".js")).map((name) => readFileSync(join(assetRoot, name), "utf8")).join("\n")
+  : "";
 const expectedCount = originals.length;
 const cardCount = (home.match(/class="story-card"/g) ?? []).length;
 
@@ -21,8 +25,11 @@ if (!existsSync(engineFile)) {
 } else {
   const engine = readFileSync(engineFile, "utf8");
   if (!engine.includes("분석하고 6종 생성")) failures.push("Knowledge Engine 생성 버튼이 없습니다.");
+  if (!engine.includes("HN LAB 매거진 게시")) failures.push("Knowledge Engine 게시 승인 화면이 없습니다.");
+  if (!builtScripts.includes("/api/publish")) failures.push("Knowledge Engine 게시 API 연결이 없습니다.");
   if (!engine.includes("noindex,nofollow,noarchive")) failures.push("Knowledge Engine 검색 제외 설정이 없습니다.");
 }
+if (!existsSync(join(root, "functions", "api", "publish.js"))) failures.push("Knowledge Engine 게시 API가 없습니다.");
 
 function removeMagazineBrand(html) {
   return html

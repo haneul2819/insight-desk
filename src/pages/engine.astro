@@ -16,12 +16,12 @@ const outputCount = postCount * 6;
       <a class="engine-brand" href="/" aria-label="HN LAB 매거진 홈">
         <span>HN LAB</span><i></i><strong>KNOWLEDGE ENGINE</strong>
       </a>
-      <div class="engine-state"><span></span>브라우저 로컬 처리</div>
+      <div class="engine-state"><span></span>로컬 분석 · 승인 후 게시</div>
     </header>
 
     <section class="engine-intro">
       <div>
-        <p class="engine-kicker">INTERNAL CONTENT SYSTEM · V1.1</p>
+        <p class="engine-kicker">INTERNAL CONTENT SYSTEM · V1.2</p>
         <h1>원고 한 편을<br /><em>6가지 배포 형식</em>으로</h1>
         <p class="engine-lead">HTML 원고를 올리면 제목·요약·태그·출처를 분석하고, 뉴스레터와 SNS 문안부터 카드뉴스·쇼츠 대본·검토표까지 한 번에 생성합니다.</p>
       </div>
@@ -91,6 +91,15 @@ const outputCount = postCount * 6;
             <button id="download-output" type="button">파일 내려받기</button>
           </div>
           <pre id="output-preview" class="output-preview" tabindex="0"></pre>
+
+          <section class="publish-panel" aria-labelledby="publish-panel-title">
+            <div>
+              <span>03</span>
+              <h3 id="publish-panel-title">HN LAB 매거진 게시</h3>
+              <p>검토가 끝난 원본 HTML을 GitHub에 저장하고 Cloudflare 자동 배포를 시작합니다.</p>
+            </div>
+            <button id="open-publish" class="publish-button" type="button" disabled>게시 준비</button>
+          </section>
         </div>
       </div>
     </section>
@@ -101,6 +110,37 @@ const outputCount = postCount * 6;
       <div><span>배포 준비</span><p>생성 파일은 검토 후 채널별로 사용합니다.</p></div>
     </section>
   </main>
+
+  <dialog id="publish-dialog" class="publish-dialog">
+    <form id="publish-form" method="dialog">
+      <div class="dialog-heading">
+        <div><span>FINAL CHECK</span><h2>매거진에 게시할까요?</h2></div>
+        <button id="close-publish" class="dialog-close" type="button" aria-label="게시 창 닫기">×</button>
+      </div>
+      <p class="dialog-lead">게시하면 GitHub <code>main</code> 브랜치에 원고가 저장되고 Cloudflare가 새 사이트를 자동으로 배포합니다.</p>
+      <dl class="publish-summary">
+        <div><dt>제목</dt><dd id="publish-title"></dd></div>
+        <div><dt>저장 위치</dt><dd id="publish-path"></dd></div>
+        <div><dt>게시 주소</dt><dd id="publish-url"></dd></div>
+        <div><dt>검토 상태</dt><dd id="publish-review"></dd></div>
+      </dl>
+      <label class="confirm-row"><input id="confirm-publish" type="checkbox" /> 원고와 게시 정보를 최종 확인했습니다.</label>
+      <label class="confirm-row"><input id="overwrite-publish" type="checkbox" /> 같은 이름의 기존 글이 있으면 덮어씁니다.</label>
+      <label class="field-label" for="publish-key">관리자 게시 키</label>
+      <input id="publish-key" class="line-input" type="password" autocomplete="current-password" placeholder="Cloudflare에 등록한 게시 키" />
+      <p class="key-help">게시 키는 저장되지 않으며 이번 게시 요청에만 사용됩니다.</p>
+      <div id="publish-error" class="publish-error" role="alert" hidden></div>
+      <div id="publish-success" class="publish-success" hidden>
+        <strong>게시 요청이 완료되었습니다.</strong>
+        <p>Cloudflare 배포에는 보통 잠시 시간이 걸립니다.</p>
+        <a id="published-link" href="#" target="_blank" rel="noreferrer">게시글 열기</a>
+      </div>
+      <div class="dialog-actions">
+        <button id="cancel-publish" class="secondary-button" type="button">취소</button>
+        <button id="confirm-publish-button" class="primary-button" type="submit">게시 승인 및 배포</button>
+      </div>
+    </form>
+  </dialog>
 
   <div id="toast" class="engine-toast" role="status" aria-live="polite"></div>
 
@@ -124,9 +164,19 @@ const outputCount = postCount * 6;
     const preview = $("#output-preview") as HTMLElement;
     const previewFilename = $("#preview-filename") as HTMLElement;
     const downloadAll = $("#download-all") as HTMLButtonElement;
+    const openPublish = $("#open-publish") as HTMLButtonElement;
+    const publishDialog = $("#publish-dialog") as HTMLDialogElement;
+    const publishForm = $("#publish-form") as HTMLFormElement;
+    const publishKey = $("#publish-key") as HTMLInputElement;
+    const confirmPublish = $("#confirm-publish") as HTMLInputElement;
+    const overwritePublish = $("#overwrite-publish") as HTMLInputElement;
+    const confirmPublishButton = $("#confirm-publish-button") as HTMLButtonElement;
+    const publishError = $("#publish-error") as HTMLElement;
+    const publishSuccess = $("#publish-success") as HTMLElement;
     const toast = $("#toast") as HTMLElement;
     let outputs: OutputFile[] = [];
     let activeIndex = 0;
+    let parsedPost: ParsedPost | null = null;
 
     const text = (html = "") => {
       const holder = document.createElement("div");
@@ -153,6 +203,12 @@ const outputCount = postCount * 6;
       toast.textContent = message;
       toast.dataset.show = "true";
       window.setTimeout(() => toast.dataset.show = "false", 1800);
+    };
+    const todayInKorea = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Seoul" }).format(new Date());
+    const publishFilename = () => {
+      const raw = nameInput.value.trim() || `${parsedPost?.date || todayInKorea()}_${parsedPost?.slug || "새글"}.html`;
+      const base = raw.split(/[\\/]/).pop()?.replace(/\.htm$/i, ".html") || `${todayInKorea()}_새글.html`;
+      return /^\d{4}-\d{2}-\d{2}_/.test(base) ? base : `${todayInKorea()}_${base}`;
     };
 
     function parsePost(html: string, filename: string): ParsedPost {
@@ -226,7 +282,7 @@ const outputCount = postCount * 6;
       preview.textContent = outputs[index].content;
     }
     function render(post: ParsedPost) {
-      outputs = makeOutputs(post); activeIndex = 0;
+      parsedPost = post; outputs = makeOutputs(post); activeIndex = 0;
       $("#result-category")!.textContent = post.category;
       $("#result-title")!.textContent = post.title;
       $("#result-summary")!.textContent = post.summary;
@@ -240,7 +296,7 @@ const outputCount = postCount * 6;
         const button = document.createElement("button"); button.type = "button"; button.textContent = output.label;
         button.addEventListener("click", () => selectOutput(index)); tabs.append(button);
       });
-      emptyResult.hidden = true; resultView.hidden = false; downloadAll.disabled = false; selectOutput(0);
+      emptyResult.hidden = true; resultView.hidden = false; downloadAll.disabled = false; openPublish.disabled = false; selectOutput(0);
     }
     async function loadFile(file: File) {
       nameInput.value = file.name;
@@ -254,16 +310,88 @@ const outputCount = postCount * 6;
     $("#generate-button")!.addEventListener("click", () => {
       const html = sourceInput.value.trim();
       if (!html) { sourceInput.focus(); showToast("HTML 원고를 입력해 주세요."); return; }
-      try { render(parsePost(html, nameInput.value.trim() || `2026-09-19_새글.html`)); showToast("6가지 결과를 생성했습니다."); }
+      try { render(parsePost(html, nameInput.value.trim() || `${todayInKorea()}_새글.html`)); showToast("6가지 결과를 생성했습니다."); }
       catch { showToast("HTML을 분석하지 못했습니다. 원고 구조를 확인해 주세요."); }
     });
     $("#clear-button")!.addEventListener("click", () => {
-      fileInput.value = ""; nameInput.value = ""; sourceInput.value = ""; outputs = [];
-      resultView.hidden = true; emptyResult.hidden = false; downloadAll.disabled = true;
+      fileInput.value = ""; nameInput.value = ""; sourceInput.value = ""; outputs = []; parsedPost = null;
+      resultView.hidden = true; emptyResult.hidden = false; downloadAll.disabled = true; openPublish.disabled = true;
     });
     $("#copy-output")!.addEventListener("click", async () => { await navigator.clipboard.writeText(outputs[activeIndex].content); showToast("내용을 복사했습니다."); });
     $("#download-output")!.addEventListener("click", () => download(outputs[activeIndex]));
     downloadAll.addEventListener("click", () => { const prefix = slugify(nameInput.value, "HN-LAB"); outputs.forEach((output, index) => window.setTimeout(() => download(output, prefix), index * 120)); showToast("6개 파일 내려받기를 시작했습니다."); });
+
+    function closePublishDialog() {
+      publishDialog.close();
+      publishKey.value = "";
+      confirmPublish.checked = false;
+      overwritePublish.checked = false;
+      publishError.hidden = true;
+      publishSuccess.hidden = true;
+    }
+
+    openPublish.addEventListener("click", () => {
+      if (!parsedPost) return;
+      const filename = publishFilename();
+      $("#publish-title")!.textContent = parsedPost.title;
+      $("#publish-path")!.textContent = `content/posts/${filename}`;
+      $("#publish-url")!.textContent = `https://insight.hnlab.kr/posts/${encodeURIComponent(slugify(filename, parsedPost.title))}/`;
+      $("#publish-review")!.textContent = !parsedPost.sources.length || !parsedPost.factCheck ? "보완 필요 — 게시 전 다시 확인" : "기본 통과";
+      publishKey.value = "";
+      confirmPublish.checked = false;
+      overwritePublish.checked = false;
+      publishError.hidden = true;
+      publishSuccess.hidden = true;
+      publishForm.querySelectorAll("input,button").forEach((element) => (element as HTMLInputElement | HTMLButtonElement).disabled = false);
+      confirmPublishButton.hidden = false;
+      $("#cancel-publish")!.textContent = "취소";
+      publishDialog.showModal();
+      confirmPublish.focus();
+    });
+
+    $("#close-publish")!.addEventListener("click", closePublishDialog);
+    $("#cancel-publish")!.addEventListener("click", closePublishDialog);
+    publishDialog.addEventListener("click", (event) => { if (event.target === publishDialog) closePublishDialog(); });
+
+    publishForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!parsedPost) return;
+      if (!confirmPublish.checked) { publishError.textContent = "최종 확인 항목에 체크해 주세요."; publishError.hidden = false; return; }
+      if (!publishKey.value.trim()) { publishError.textContent = "관리자 게시 키를 입력해 주세요."; publishError.hidden = false; publishKey.focus(); return; }
+
+      publishError.hidden = true;
+      publishSuccess.hidden = true;
+      confirmPublishButton.disabled = true;
+      confirmPublishButton.textContent = "게시 요청 중…";
+      try {
+        const response = await fetch("/api/publish", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${publishKey.value.trim()}` },
+          body: JSON.stringify({
+            filename: publishFilename(),
+            html: sourceInput.value,
+            title: parsedPost.title,
+            overwrite: overwritePublish.checked,
+          }),
+        });
+        const result = await response.json().catch(() => ({})) as { ok?: boolean; error?: string; postUrl?: string };
+        if (!response.ok || !result.ok) throw new Error(result.error || "게시 요청을 처리하지 못했습니다.");
+        publishKey.value = "";
+        publishSuccess.hidden = false;
+        const publishedLink = $("#published-link") as HTMLAnchorElement;
+        publishedLink.href = result.postUrl || parsedPost.url;
+        publishForm.querySelectorAll("input").forEach((element) => (element as HTMLInputElement).disabled = true);
+        confirmPublishButton.hidden = true;
+        $("#cancel-publish")!.textContent = "닫기";
+        showToast("게시 요청이 완료되었습니다.");
+      } catch (error) {
+        publishError.textContent = error instanceof Error ? error.message : "게시 중 오류가 발생했습니다.";
+        publishError.hidden = false;
+      } finally {
+        confirmPublishButton.disabled = false;
+        confirmPublishButton.textContent = "게시 승인 및 배포";
+      }
+    });
   </script>
 
   <style>
@@ -320,12 +448,40 @@ const outputCount = postCount * 6;
     .preview-toolbar span { margin-right: auto; font: .7rem/1 ui-monospace,monospace; color: #596268; }
     .preview-toolbar button { padding: 5px 0; border: 0; border-bottom: 1px solid #101820; background: none; cursor: pointer; font-size: .68rem; font-weight: 750; }
     .output-preview { height: 405px; margin: 0; padding: 22px; overflow: auto; border: 1px solid #101820; background: #101820; color: #e7e9e5; white-space: pre-wrap; word-break: break-word; font: .78rem/1.72 ui-monospace,SFMono-Regular,Menlo,monospace; }
+    .publish-panel { margin-top: 18px; padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; gap: 24px; border: 1px solid #101820; background: #f4f1e8; }
+    .publish-panel > div > span { color: #b7442d; font: 800 .65rem/1 ui-monospace,monospace; }
+    .publish-panel h3 { margin: 6px 0 0; font-size: 1rem; }
+    .publish-panel p { max-width: 520px; margin: 6px 0 0; color: #697178; font-size: .7rem; line-height: 1.55; }
+    .publish-button { min-height: 42px; flex: 0 0 auto; padding: 0 17px; border: 1px solid #b7442d; background: #b7442d; color: #fff; cursor: pointer; font-size: .75rem; font-weight: 850; }
+    .publish-button:disabled { opacity: .35; cursor: default; }
+    .publish-dialog { width: min(650px, calc(100% - 28px)); max-height: calc(100vh - 32px); padding: 0; border: 1px solid #101820; border-radius: 0; background: #fffefa; color: #101820; box-shadow: 0 30px 90px rgba(0,0,0,.28); }
+    .publish-dialog::backdrop { background: rgba(16,24,32,.72); backdrop-filter: blur(3px); }
+    .publish-dialog form { padding: 28px; }
+    .dialog-heading { display: flex; justify-content: space-between; gap: 20px; }
+    .dialog-heading span { color: #b7442d; font: 800 .65rem/1 ui-monospace,monospace; letter-spacing: .13em; }
+    .dialog-heading h2 { margin: 8px 0 0; font-size: 1.65rem; letter-spacing: -.04em; }
+    .dialog-close { width: 36px; height: 36px; padding: 0; border: 1px solid #101820; background: transparent; cursor: pointer; font-size: 1.5rem; line-height: 1; }
+    .dialog-lead { margin: 18px 0; color: #59646a; font-size: .82rem; line-height: 1.65; }
+    .dialog-lead code { color: #b7442d; font-weight: 800; }
+    .publish-summary { margin: 0 0 20px; border-top: 1px solid #afb3ad; }
+    .publish-summary div { padding: 10px 0; display: grid; grid-template-columns: 92px minmax(0,1fr); gap: 14px; border-bottom: 1px solid #d5d6d1; }
+    .publish-summary dt { color: #747d81; font-size: .68rem; }
+    .publish-summary dd { margin: 0; overflow-wrap: anywhere; font-size: .76rem; font-weight: 750; }
+    .confirm-row { margin: 10px 0; display: flex; align-items: flex-start; gap: 9px; font-size: .77rem; line-height: 1.45; cursor: pointer; }
+    .confirm-row input { margin-top: 2px; accent-color: #b7442d; }
+    .key-help { margin: 7px 0 0; color: #747d81; font-size: .67rem; }
+    .publish-error, .publish-success { margin-top: 16px; padding: 13px 15px; border: 1px solid #b7442d; background: #fbede9; color: #8d2f20; font-size: .76rem; line-height: 1.55; }
+    .publish-success { border-color: #3f6b5a; background: #edf5f0; color: #294f40; }
+    .publish-success p { margin: 5px 0; }
+    .publish-success a { color: inherit; font-weight: 850; text-decoration: underline; }
+    .dialog-actions { margin-top: 22px; display: flex; justify-content: flex-end; gap: 8px; }
+    .secondary-button { min-height: 48px; padding: 0 20px; border: 1px solid #101820; background: transparent; cursor: pointer; font-size: .82rem; font-weight: 800; }
     .engine-guide { width: min(1320px, calc(100% - 60px)); margin: 42px auto 0; padding: 0 0 70px; display: grid; grid-template-columns: repeat(3,1fr); border-top: 1px solid #101820; }
     .engine-guide div { padding: 24px 20px 0 0; } .engine-guide div + div { padding-left: 28px; border-left: 1px solid #aeb2ac; }
     .engine-guide span { color: #b7442d; font-size: .75rem; font-weight: 850; } .engine-guide p { margin: 9px 0 0; color: #697178; font-size: .78rem; line-height: 1.6; }
     .engine-toast { position: fixed; left: 50%; bottom: 26px; z-index: 20; padding: 12px 18px; background: #101820; color: #fff; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; transition: .2s ease; font-size: .78rem; box-shadow: 0 10px 30px rgba(0,0,0,.2); }
     .engine-toast[data-show="true"] { transform: translate(-50%,0); opacity: 1; }
     @media (max-width: 980px) { .engine-intro { grid-template-columns: 1fr; gap: 36px; } .engine-workspace { grid-template-columns: 1fr; } .engine-input-panel { border-right: 0; border-bottom: 1px solid #101820; } }
-    @media (max-width: 620px) { .engine-header { padding-inline: 16px; } .engine-brand strong { display: none; } .engine-intro { width: calc(100% - 32px); padding: 42px 0 34px; } .engine-intro h1 { font-size: 2.75rem; } .engine-stats dt { font-size: 2.2rem; } .engine-workspace { width: calc(100% - 16px); } .engine-input-panel,.engine-output-panel { padding: 20px; } .input-actions { align-items: stretch; flex-direction: column; } .analysis-card { grid-template-columns: 1fr; } .analysis-card dl { border-top: 1px solid #c4c6c0; } .analysis-card dl div:first-child { border-left: 0; } .engine-guide { width: calc(100% - 32px); grid-template-columns: 1fr; } .engine-guide div + div { padding-left: 0; border-left: 0; } }
+    @media (max-width: 620px) { .engine-header { padding-inline: 16px; } .engine-brand strong { display: none; } .engine-intro { width: calc(100% - 32px); padding: 42px 0 34px; } .engine-intro h1 { font-size: 2.75rem; } .engine-stats dt { font-size: 2.2rem; } .engine-workspace { width: calc(100% - 16px); } .engine-input-panel,.engine-output-panel { padding: 20px; } .input-actions { align-items: stretch; flex-direction: column; } .analysis-card { grid-template-columns: 1fr; } .analysis-card dl { border-top: 1px solid #c4c6c0; } .analysis-card dl div:first-child { border-left: 0; } .publish-panel { align-items: stretch; flex-direction: column; } .publish-dialog form { padding: 22px 18px; } .publish-summary div { grid-template-columns: 74px minmax(0,1fr); } .dialog-actions { align-items: stretch; flex-direction: column-reverse; } .engine-guide { width: calc(100% - 32px); grid-template-columns: 1fr; } .engine-guide div + div { padding-left: 0; border-left: 0; } }
   </style>
 </BaseLayout>
