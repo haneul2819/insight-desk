@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>윈도우 11 보안 업데이트가 백업을 멈췄다…Microsoft가 9월 19일 공식 인정</title>
+<style>
+body{margin:0;background:#fff;color:#222;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;line-height:1.9;word-break:keep-all}
+.wrap{max-width:860px;margin:0 auto;padding:44px 24px 72px}
+h1{font-size:38px;line-height:1.3;letter-spacing:-1.3px;margin:0 0 24px;color:#102a43}
+h2{font-size:24px;line-height:1.45;margin:44px 0 15px;color:#164e78;border-left:5px solid #2f80ed;padding-left:12px}
+p,li{font-size:19px}
+.lead{background:#f5f9fd;border:1px solid #dbe9f5;border-radius:14px;padding:21px 23px;margin:24px 0 30px;font-size:20px}
+strong{color:#0b4f8a}
+.point{background:#f8fafc;border-radius:12px;padding:18px 20px;margin:18px 0}
+.warning{background:#fffaf2;border:1px solid #f2dfbf;border-radius:12px;padding:18px 20px;margin:18px 0}
+.key{color:#0a67a3;font-weight:700}
+.source{font-size:16px;color:#52606d;margin:9px 0}
+.source a{color:#0a67a3;text-decoration:none}
+.tags{margin-top:38px;padding-top:22px;border-top:1px solid #e6edf3;color:#164e78;font-size:18px;font-weight:700;line-height:2}
+</style>
+</head>
+<body><div class="wrap">
+
+<h1>윈도우 11 보안 업데이트가 백업을 멈췄다…Microsoft가 9월 19일 공식 인정</h1>
+
+<div class="lead">
+<strong>2026년 9월 19일 Microsoft가 Windows 11의 9월 보안 업데이트 이후 일부 PC에서 ‘파일 히스토리(File History)’ 백업이 작동하지 않는 문제를 공식 확인했습니다.</strong>
+외장 드라이브가 정상적으로 연결돼 있어도 “드라이브를 다시 연결하세요”라는 메시지가 나타나거나, 새 백업이 만들어지지 않고 이전 버전이 보이지 않을 수 있습니다.
+특히 백업 기능은 평소 눈에 잘 띄지 않기 때문에 <strong>사용자가 장애를 모른 채 지내다가 파일 복원이 필요한 순간에 문제를 발견할 수 있다는 점</strong>이 중요합니다.
+</div>
+
+<h2>핵심 요약</h2>
+<p>Microsoft는 Windows 11 버전 24H2·25H2용 9월 8일 보안 업데이트 <strong>KB5124008</strong>의 알려진 문제 목록을 9월 19일 갱신했습니다.</p>
+<p>공식 설명에 따르면 일부 사용자는 업데이트 설치 뒤 파일 히스토리에서 외장 드라이브나 네트워크 위치로 <strong>새 백업을 만들거나 기존 백업을 갱신하지 못할 수 있습니다.</strong></p>
+<p>영향을 받은 PC에서는 외장 드라이브가 연결돼 있는데도 재연결을 요구하거나, ‘마지막 백업’ 시간이 갱신되지 않고, 기존 백업 파일에 ‘이전 버전 없음’이 표시될 수 있습니다.</p>
+
+<div class="point">
+<p><strong>핵심은 저장장치 자체가 고장 난 것이 아닐 수 있다는 점입니다.</strong><br>
+9월 Windows 보안 업데이트를 설치한 뒤 갑자기 파일 히스토리가 외장 드라이브를 찾지 못한다면 업데이트 관련 문제인지 먼저 확인할 필요가 있습니다.</p>
+</div>
+
+<h2>왜 중요한가</h2>
+<p>파일 히스토리는 문서·사진 등 개인 파일의 사본과 이전 버전을 외장 드라이브나 네트워크 위치에 보관하는 Windows의 백업 기능입니다.</p>
+<p>백업 프로그램의 장애는 브라우저나 앱이 멈추는 일반적인 오류와 성격이 다릅니다. 사용자가 평소 백업 상태를 확인하지 않으면 <strong>실제 파일을 잃은 뒤에야 백업이 오래전부터 멈춰 있었다는 사실을 알게 될 수 있기 때문</strong>입니다.</p>
+<p>랜섬웨어, 저장장치 고장, 실수로 인한 삭제 등에 대비하려면 백업은 ‘설정해 두는 것’보다 실제로 최근 백업이 만들어지고 있는지 확인하는 것이 중요합니다.</p>
+
+<h2>어떤 증상이 나타나나</h2>
+<p>Microsoft가 공식적으로 확인한 증상은 다음과 같습니다.</p>
+<ul>
+<li>외장 또는 네트워크 백업 드라이브가 연결돼 있어도 <strong>“Reconnect your drive”</strong> 메시지가 나타날 수 있습니다.</li>
+<li>새로운 백업을 만들거나 기존 백업을 갱신하지 못할 수 있습니다.</li>
+<li><strong>Last Backup</strong> 시간이 최근 시점으로 갱신되지 않을 수 있습니다.</li>
+<li>이미 백업된 파일에서도 <strong>“No previous version available”</strong>이 표시될 수 있습니다.</li>
+<li>일부 PC의 이벤트 뷰어에는 <strong>FileHistory.exe와 KERNELBASE.dll</strong> 관련 충돌 기록이 남을 수 있습니다.</li>
+</ul>
+
+<h2>문제의 업데이트는 무엇인가</h2>
+<p>Microsoft가 명시한 업데이트는 <strong>KB5124008</strong>입니다. 2026년 9월 8일 배포된 Windows 11 24H2·25H2용 누적 보안 업데이트입니다.</p>
+<p>이 업데이트는 보안 개선과 Secure Boot 관련 변경 등을 포함하고 있지만, 배포 이후 파일 히스토리뿐 아니라 일부 기업 환경의 도메인 신뢰 관계, USB 오디오, Hyper-V 기반 Linux 가상머신 폴더 공유, 원격 데스크톱 서비스 등 여러 문제가 보고됐습니다.</p>
+<p>이 가운데 일부 문제는 9월 14일 긴급(out-of-band) 업데이트에서 해결됐지만, <strong>9월 19일 현재 파일 히스토리 문제는 아직 해결되지 않았습니다.</strong></p>
+
+<h2>기술·산업 배경</h2>
+<p>Windows의 누적 업데이트는 보안 취약점과 품질 개선을 한꺼번에 전달합니다. 보안 측면에서는 빠른 설치가 중요하지만, 운영체제의 많은 구성요소를 동시에 변경하기 때문에 특정 하드웨어나 기업 환경에서 예상하지 못한 회귀 오류가 나타날 수 있습니다.</p>
+<p>이번 9월 업데이트는 원격 데스크톱, 가상화, 오디오, 기업 인증, 백업 등 서로 다른 영역에서 알려진 문제가 확인됐다는 점에서 운영체제 업데이트의 복잡성을 보여줍니다.</p>
+<p>기업에서는 업데이트를 모든 PC에 즉시 배포하기보다 일부 기기에 먼저 적용해 업무 프로그램과 장비 호환성을 확인하는 <strong>단계적 배포</strong>가 중요한 이유이기도 합니다.</p>
+
+<h2>소비자는 무엇을 확인해야 하나</h2>
+<p>파일 히스토리를 사용하고 있다면 제어판의 <strong>시스템 및 보안 → 파일 히스토리</strong>에서 최근 백업 시간이 정상적으로 갱신됐는지 확인하는 것이 좋습니다.</p>
+<p>외장 드라이브를 연결했는데 갑자기 재연결 메시지가 나타난다면 드라이브 고장으로 단정하기 전에 Windows 업데이트 이후 발생한 문제인지 확인할 필요가 있습니다.</p>
+
+<div class="warning">
+<p><strong>주의:</strong> 문제를 해결하기 위해 보안 업데이트를 무조건 삭제하는 것은 권장하기 어렵습니다. 보안 업데이트에는 취약점 수정도 포함돼 있기 때문입니다. Microsoft는 현재 파일 히스토리 문제에 대한 수정 업데이트를 준비하고 있다고 밝혔습니다. 중요한 자료는 문제가 해결될 때까지 다른 백업 수단을 추가로 사용하는 편이 안전합니다.</p>
+</div>
+
+<h2>한국과의 관련성</h2>
+<p>Windows는 한국의 가정과 기업, 병원, 학교, 공공기관에서 광범위하게 사용됩니다. 특히 외장 하드디스크나 NAS를 연결해 파일 히스토리를 사용하는 개인·소규모 사업자라면 직접 영향을 받을 수 있습니다.</p>
+<p>기업 환경에서는 이번 9월 업데이트에서 별도로 확인된 <strong>Active Directory 도메인 신뢰 관계 문제</strong>도 살펴볼 필요가 있습니다. 특정 Machine Identity Isolation 설정이 활성화된 환경에서 구형 도메인 컨트롤러를 사용하면 정상적인 계정으로도 로그인하지 못하는 문제가 발생할 수 있다고 Microsoft가 설명했습니다.</p>
+<p>다만 이 문제는 모든 Windows PC에서 발생하는 것이 아니라 특정 설정과 환경에 한정됩니다.</p>
+
+<h2>팩트체크</h2>
+<ul>
+<li><strong>Microsoft 공식 확인일:</strong> 2026년 9월 19일.</li>
+<li><strong>관련 업데이트:</strong> Windows 11 24H2·25H2용 KB5124008.</li>
+<li><strong>주요 문제:</strong> 일부 PC에서 파일 히스토리 백업 생성·갱신 실패.</li>
+<li><strong>대표 증상:</strong> 정상 연결된 드라이브에 ‘다시 연결’ 메시지 표시.</li>
+<li><strong>기존 백업:</strong> 이전 버전이 보이지 않는 증상이 나타날 수 있음.</li>
+<li><strong>현재 해결 여부:</strong> Microsoft가 수정 작업 중이며 9월 19일 기준 최종 해결책은 아직 배포되지 않음.</li>
+<li><strong>영향 범위:</strong> 모든 Windows 11 사용자가 반드시 문제를 겪는 것은 아님.</li>
+<li><strong>업데이트 삭제:</strong> 보안 위험이 있으므로 일반적인 해결책으로 무조건 권장할 수 없음.</li>
+</ul>
+
+<h2>앞으로 볼 포인트</h2>
+<p><strong>첫째, Microsoft가 파일 히스토리 수정 패치를 언제 배포하는지</strong>가 가장 중요합니다.</p>
+<p><strong>둘째, 9월 업데이트에서 확인된 다른 문제들이 모두 정리되는지</strong>도 살펴봐야 합니다. 특히 기업 환경의 도메인 인증과 일부 USB 오디오 문제는 사용자 환경에 따라 업무에 직접 영향을 줄 수 있습니다.</p>
+<p><strong>셋째, 백업 상태를 자동으로 더 명확하게 알려주는 기능이 강화될지</strong>도 주목할 부분입니다. 백업 실패는 사용자에게 조용히 발생할수록 위험하기 때문입니다.</p>
+<p><strong>넷째, 기업의 단계적 업데이트 정책</strong>입니다. 보안 패치를 늦추는 위험과 호환성 검증의 필요성 사이에서 적절한 배포 전략이 중요합니다.</p>
+
+<h2>핵심용어</h2>
+<p><strong>File History:</strong> Windows에서 개인 파일의 사본과 이전 버전을 외장 드라이브나 네트워크 위치에 자동 저장하는 백업 기능.</p>
+<p><strong>KB5124008:</strong> 2026년 9월 8일 배포된 Windows 11 24H2·25H2용 누적 보안 업데이트.</p>
+<p><strong>Out-of-Band Update:</strong> 정기 업데이트 일정 밖에서 긴급하게 배포하는 수정 업데이트.</p>
+<p><strong>Regression:</strong> 소프트웨어 업데이트 후 이전에는 정상 작동하던 기능에 새 문제가 발생하는 현상.</p>
+<p><strong>Active Directory:</strong> 기업·기관에서 사용자와 PC의 계정, 권한, 인증을 중앙 관리하는 Microsoft의 디렉터리 서비스.</p>
+
+<h2>핵심 정리</h2>
+<p><strong>Microsoft는 9월 19일 Windows 11의 9월 보안 업데이트 KB5124008 이후 일부 PC에서 파일 히스토리 백업이 작동하지 않을 수 있다는 사실을 공식 확인했습니다.</strong></p>
+<p>외장 드라이브가 정상인데도 재연결 메시지가 뜨거나 최근 백업 시간이 갱신되지 않는다면 실제 백업 상태를 확인할 필요가 있습니다.</p>
+<p>다만 보안 업데이트를 무조건 삭제하는 것은 또 다른 보안 위험을 만들 수 있습니다. Microsoft의 수정 패치를 기다리는 동안 중요한 파일은 별도의 외장 저장장치나 신뢰할 수 있는 다른 백업 방식으로 이중화하는 것이 현실적인 대응입니다.</p>
+<p class="key">백업은 ‘켜져 있는지’보다 ‘어제도 실제로 백업됐는지’를 확인하는 것이 더 중요합니다.</p>
+
+<h2>출처</h2>
+<p class="source">Microsoft Support, “September 8, 2026—KB5124008 (OS Builds 26200.9445 and 26100.9445)”, 2026년 9월 8일 게시, 9월 19일 File History 알려진 문제 추가.</p>
+<p class="source">Microsoft Support, “September 8, 2026—KB5122880 (OS Build 22621.7582)”, 2026년 9월 19일 변경내역 확인.</p>
+<p class="source">Tom's Hardware, “Microsoft rolls out emergency update for Windows 11's latest patch”, 2026년 9월 16일. 9월 Windows 업데이트 관련 장애 배경 확인.</p>
+
+<div class="tags">#Windows11 #윈도우11 #KB5124008 #파일히스토리 #윈도우업데이트 #백업 #Microsoft #보안업데이트 #PC보안 #IT뉴스</div>
+
+</div></body></html>
